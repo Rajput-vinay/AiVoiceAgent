@@ -66,6 +66,24 @@
           "description": "Speak analyses aloud when the Buddy Voice page is open."
         }
       }
+    },
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "ai-buddy",
+          "title": "AI Buddy",
+          "icon": "$(hubot)"
+        }
+      ]
+    },
+    "views": {
+      "ai-buddy": [
+        {
+          "id": "buddy.view",
+          "name": "Buddy",
+          "type": "webview"
+        }
+      ]
     }
   },
   "scripts": {
