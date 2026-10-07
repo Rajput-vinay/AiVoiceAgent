@@ -1,6 +1,7 @@
 import * as vscode from "vscode";
 import { Analyzer, API_KEY_SECRET } from "./analyzer";
 import { BuddyPanel } from "./buddyPanel";
+import { BuddyView, BuddyViewMessage } from "./buddyView";
 import { collectContext } from "./contextCollector";
 import { Conversation } from "./conversation";
 import { DiagnosticsWatcher } from "./diagnosticsWatcher";
@@ -11,6 +12,7 @@ import { VoiceServer } from "./voiceServer";
 export function activate(context: vscode.ExtensionContext) {
   const log = vscode.window.createOutputChannel("AI Buddy");
   const panel = new BuddyPanel();
+  const buddyView = new BuddyView(log);
   const analyzer = new Analyzer(context.secrets, log);
   const conversation = new Conversation(context.secrets, log);
   const voice = new VoiceServer((text) => conversation.ask(text), log);
@@ -57,7 +59,7 @@ export function activate(context: vscode.ExtensionContext) {
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       log.appendLine(`[error] ${message}`);
-      if (latestId === issue.id) panel.show(issue, { kind: "error", message });
+      if (latestId === issue.id) { panel.show(issue, { kind: "error", message }); buddyView.error(message); buddyView.status("Ready."); }
     }
   }
 
@@ -121,7 +123,7 @@ export function activate(context: vscode.ExtensionContext) {
       );
     }),
 
-    vscode.commands.registerCommand("buddy.openPanel", () => panel.show()),
+    vscode.commands.registerCommand("buddy.openPanel", () => { buddyView.focus(); panel.show(); }),
     vscode.commands.registerCommand("buddy.openVoice", openVoice),
 
     vscode.commands.registerCommand("buddy.setApiKey", async () => {
@@ -183,6 +185,34 @@ export function activate(context: vscode.ExtensionContext) {
       });
     }),
   );
+
+    buddyView.onMessage = async (message: BuddyViewMessage) => {
+      try {
+        if (message.type === "clear") {
+          conversation.clear();
+          buddyView.status("Conversation cleared. Ready.");
+          return;
+        }
+
+        if (message.type === "verify") {
+          buddyView.status("🔎 Checking the current diagnostics...");
+          const reply = await conversation.verifyFix();
+          buddyView.reply(reply);
+          return;
+        }
+
+        if (message.type === "ask") {
+          buddyView.status("🔎 Reading current code and diagnostics...");
+          const reply = await conversation.ask(message.text);
+          buddyView.reply(reply);
+        }
+      } catch (err) {
+        const messageText = err instanceof Error ? err.message : String(err);
+        log.appendLine(`[buddy-view] ${messageText}`);
+        buddyView.error(messageText);
+        buddyView.status("Ready.");
+      }
+    };
 
   log.appendLine("AI Buddy active.");
 }
