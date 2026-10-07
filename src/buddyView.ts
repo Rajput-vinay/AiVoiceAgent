@@ -39,19 +39,37 @@ button{padding:6px 8px;background:var(--vscode-button-background);color:var(--vs
 </style>
 <h3>🤖 AI Coding Buddy</h3><div class="status" id="s">Ready. Talk or type.</div>
 <div id="issue"></div><div id="chat"></div>
-<div style="display:flex;gap:5px;margin:6px 0"><button id="mic">🎙 Talk</button><button id="verify">✓ Verify Fix</button><button id="clear">Clear</button></div>
+<div style="display:flex;gap:5px;margin:6px 0"><button id="mic">🎙 Talk</button><button id="speak">🔊 Speak</button><button id="verify">✓ Verify Fix</button><button id="clear">Clear</button></div>
 <form id="row"><input id="q" placeholder="Ask Buddy..."><button>Send</button></form>
 <script nonce="${nonce}">
-const v=acquireVsCodeApi(),c=document.getElementById("chat"),q=document.getElementById("q"),s=document.getElementById("s"),mic=document.getElementById("mic");
+const v=acquireVsCodeApi(),c=document.getElementById("chat"),q=document.getElementById("q"),s=document.getElementById("s"),mic=document.getElementById("mic"),speakBtn=document.getElementById("speak");
+let voices=[];
+function loadVoices(){voices=speechSynthesis.getVoices();return voices}
+loadVoices();
+speechSynthesis.onvoiceschanged=loadVoices;
+function speak(t){
+  if(!("speechSynthesis" in window)||!t)return;
+  speechSynthesis.cancel();
+  const u=new SpeechSynthesisUtterance(t);
+  u.lang="en-IN";
+  u.rate=0.95;
+  u.pitch=1;
+  const preferred=voices.find(x=>/^en-IN$/i.test(x.lang))||voices.find(x=>/^en/i.test(x.lang));
+  if(preferred)u.voice=preferred;
+  u.onstart=()=>s.textContent="🔊 Speaking...";
+  u.onend=()=>s.textContent="Ready.";
+  u.onerror=()=>s.textContent="Ready. (Voice playback unavailable)";
+  speechSynthesis.speak(u);
+}
 function add(cls,t,d){let x=document.createElement("div");x.className="m "+cls;x.textContent=t+(d?"\n\n"+d:"");c.appendChild(x);c.scrollTop=c.scrollHeight}
 function ask(t){if(!t.trim())return;add("y",t);q.value="";s.textContent="🤔 Investigating...";v.postMessage({type:"ask",text:t})}
 document.getElementById("row").onsubmit=e=>{e.preventDefault();ask(q.value)};
+speakBtn.onclick=()=>{const msgs=c.querySelectorAll(".b");const last=msgs[msgs.length-1];if(last)speak(last.textContent||"")};
 document.getElementById("verify").onclick=()=>{s.textContent="🔎 Checking diagnostics...";v.postMessage({type:"verify"})};
 document.getElementById("clear").onclick=()=>{c.innerHTML="";v.postMessage({type:"clear"})};
-function speak(t){if(!speechSynthesis)return;speechSynthesis.cancel();let u=new SpeechSynthesisUtterance(t);u.lang="en-IN";speechSynthesis.speak(u)}
 window.onmessage=e=>{let m=e.data;if(m.type==="status")s.textContent=m.text;if(m.type==="reply"){add("b",m.spoken,m.detail);speak(m.spoken);s.textContent="Ready."}if(m.type==="error"){add("b","Error: "+m.text);s.textContent="Error"}if(m.type==="fixed"){add("b",m.text);speak(m.text);s.textContent="Verified"}if(m.type==="issue"){let i=m.issue;let z=document.getElementById("issue");z.style.display="block";z.textContent=i.severity.toUpperCase()+": "+i.title+" — "+(i.file||"terminal")+(i.line?":"+i.line:"");if(m.analysis){add("b",m.analysis.spoken,m.analysis.example||m.analysis.explanation);speak(m.analysis.spoken)}}};
 let SR=window.SpeechRecognition||window.webkitSpeechRecognition,rec;
-mic.onclick=()=>{if(!SR){s.textContent="Mic unavailable in this VS Code webview. Type instead.";return}if(rec){rec.stop();rec=null;return}speechSynthesis?.cancel();rec=new SR();rec.lang="en-IN";rec.interimResults=true;let heard="";rec.onresult=e=>{heard=Array.from(e.results).map(r=>r[0].transcript).join("");s.textContent="🎙 "+heard};rec.onerror=e=>{s.textContent="Mic error: "+e.error};rec.onend=()=>{rec=null;if(heard.trim())ask(heard);else s.textContent="Ready."};rec.start();s.textContent="🎙 Listening...";
+mic.onclick=()=>{if(!SR){s.textContent="Mic unavailable in this VS Code webview. Type instead.";return}if(rec){rec.stop();rec=null;return}if("speechSynthesis" in window)speechSynthesis.cancel();rec=new SR();rec.lang="en-IN";rec.interimResults=true;let heard="";rec.onresult=e=>{heard=Array.from(e.results).map(r=>r[0].transcript).join("");s.textContent="🎙 "+heard};rec.onerror=e=>{s.textContent="Mic error: "+e.error};rec.onend=()=>{rec=null;if(heard.trim())ask(heard);else s.textContent="Ready."};rec.start();s.textContent="🎙 Listening...";
 };
 </script>`;
   }
