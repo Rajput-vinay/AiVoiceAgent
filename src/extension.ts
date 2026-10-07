@@ -7,7 +7,6 @@ import { Conversation } from "./conversation";
 import { DiagnosticsWatcher } from "./diagnosticsWatcher";
 import { TerminalWatcher } from "./terminalWatcher";
 import { Analysis, DetectedIssue } from "./types";
-import { VoiceServer } from "./voiceServer";
 
 export function activate(context: vscode.ExtensionContext) {
   const log = vscode.window.createOutputChannel("AI Buddy");
@@ -15,7 +14,6 @@ export function activate(context: vscode.ExtensionContext) {
   const buddyView = new BuddyView(log);
   const analyzer = new Analyzer(context.secrets, log);
   const conversation = new Conversation(context.secrets, log);
-  const voice = new VoiceServer((text) => conversation.ask(text), log);
   const diagnostics = new DiagnosticsWatcher();
   const terminal = new TerminalWatcher();
 
@@ -82,32 +80,18 @@ export function activate(context: vscode.ExtensionContext) {
     if (choice === "Dekho") analyzeAndShow(issue);
   };
 
-  async function openVoice() {
-    try {
-      const local = await voice.start();
-      // asExternalUri makes this work in Remote/WSL too (port forwarding).
-      const external = await vscode.env.asExternalUri(vscode.Uri.parse(local));
-      await vscode.env.openExternal(external);
-    } catch (err) {
-      vscode.window.showErrorMessage(
-        `Buddy voice start nahi hua: ${err instanceof Error ? err.message : String(err)}`,
-      );
-    }
-  }
-
   const status = vscode.window.createStatusBarItem(
     vscode.StatusBarAlignment.Right,
     100,
   );
-  status.text = "$(unmute) Buddy Voice";
-  status.tooltip = "Open Buddy Voice in your browser";
-  status.command = "buddy.openVoice";
+  status.text = "$(hubot) AI Buddy";
+  status.tooltip = "Open AI Buddy sidebar";
+  status.command = "buddy.openPanel";
   status.show();
 
   context.subscriptions.push(
     diagnostics,
     terminal,
-    voice,
     status,
     log,
     diagnostics.onIssue(handleIssue),
@@ -124,7 +108,6 @@ export function activate(context: vscode.ExtensionContext) {
     }),
 
     vscode.commands.registerCommand("buddy.openPanel", () => { buddyView.focus(); panel.show(); }),
-    vscode.commands.registerCommand("buddy.openVoice", openVoice),
 
     vscode.commands.registerCommand("buddy.setApiKey", async () => {
       const key = await vscode.window.showInputBox({
