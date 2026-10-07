@@ -53,13 +53,13 @@
         },
         "buddy.model": {
           "type": "string",
-          "default": "gemini-2.5-flash",
+          "default": "gemini-3.8-flash",
           "description": "Gemini model id used for analysis and chat."
         },
         "buddy.speak": {
           "type": "boolean",
           "default": true,
-          "description": "Speak analyses aloud when the Buddy Voice page is open."
+          "description": "Speak analyses aloud in the Buddy sidebar."
         }
       }
     },
