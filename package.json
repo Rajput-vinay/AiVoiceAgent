@@ -1,0 +1,80 @@
+{
+  "name": "ai-buddy",
+  "displayName": "AI Coding Buddy",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.93.0"
+  },
+  "main": "./out/extension.js",
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "contributes": {
+    "commands": [
+      {
+        "command": "buddy.openPanel",
+        "title": "Buddy: Open Panel"
+      },
+      {
+        "command": "buddy.checkCurrentFile",
+        "title": "Buddy: Check Current File"
+      },
+      {
+        "command": "buddy.setApiKey",
+        "title": "Buddy: Set API Key"
+      },
+      {
+        "command": "buddy.openVoice",
+        "title": "Buddy: Open Voice"
+      }
+    ],
+    "configuration": {
+      "title": "AI Buddy",
+      "properties": {
+        "buddy.mode": {
+          "type": "string",
+          "enum": [
+            "automatic",
+            "ask",
+            "manual"
+          ],
+          "default": "ask",
+          "description": "automatic: open panel on issues. ask: ask first. manual: only via 'Check Current File'."
+        },
+        "buddy.settleMs": {
+          "type": "number",
+          "default": 2500,
+          "description": "How long code must be stable before Buddy reports an issue."
+        },
+        "buddy.language": {
+          "type": "string",
+          "enum": [
+            "hinglish",
+            "english"
+          ],
+          "default": "hinglish",
+          "description": "Language of Buddy's explanations."
+        },
+        "buddy.model": {
+          "type": "string",
+          "default": "gemini-2.5-flash",
+          "description": "Gemini model id used for analysis and chat."
+        },
+        "buddy.speak": {
+          "type": "boolean",
+          "default": true,
+          "description": "Speak analyses aloud when the Buddy Voice page is open."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/vscode": "^1.93.0",
+    "typescript": "^5.4.0"
+  }
+}
