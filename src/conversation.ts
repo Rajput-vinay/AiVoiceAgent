@@ -56,6 +56,30 @@ export class Conversation {
     this.active = { issue, analysis };
   }
 
+  clear() {
+    this.turns = [];
+    this.active = undefined;
+  }
+
+  async verifyFix(): Promise<Reply> {
+    if (!this.active) {
+      return {
+        spoken: "Abhi koi active issue nahi hai jise verify karun.",
+        detail: "Run Buddy: Check Current File or wait for a diagnostic issue.",
+      };
+    }
+
+    const state = await this.liveState();
+    if (state.includes("diagnostics now:\n(none)")) {
+      return {
+        spoken: "Good. Original diagnostic ab current file mein nahi aa raha. Fix verified.",
+        detail: "VS Code diagnostics are clear for the active file. Runtime or behavior bugs should still be checked with the relevant test or command.",
+      };
+    }
+
+    return this.ask("I changed the code. Verify whether the original issue is actually fixed. If the diagnostic is still present, tell me exactly what remains.");
+  }
+
   private async liveState(): Promise<string> {
     let uri: vscode.Uri | undefined;
     const file = this.active?.issue.file;
