@@ -132,7 +132,7 @@ export class Analyzer {
       throw new Error('API key set nahi hai. Run: "Buddy: Set API Key".');
 
     const cfg = vscode.workspace.getConfiguration("buddy");
-    const model = cfg.get<string>("model", "gemini-2.5-flash");
+    const model = cfg.get<string>("model", "gemini-3.8-flash");
     const lang = cfg.get<"hinglish" | "english">("language", "hinglish");
 
     const controller = new AbortController();
