@@ -11,7 +11,7 @@ import { Analysis, DetectedIssue } from "./types";
 export function activate(context: vscode.ExtensionContext) {
   const log = vscode.window.createOutputChannel("AI Buddy");
   const panel = new BuddyPanel();
-  const buddyView = new BuddyView(log);
+  const buddyView = new BuddyView();
   const analyzer = new Analyzer(context.secrets, log);
   const conversation = new Conversation(context.secrets, log);
   const diagnostics = new DiagnosticsWatcher();
