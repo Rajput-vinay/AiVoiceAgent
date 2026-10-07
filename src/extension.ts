@@ -44,13 +44,17 @@ export function activate(context: vscode.ExtensionContext) {
       return speakIfEnabled(cached.spoken);
     }
 
-    buddyView.issue(issue);\n    buddyView.status("🤔 Analyzing the issue...");\n    panel.show(issue, { kind: "loading" });
+    buddyView.issue(issue);
+    buddyView.status("🤔 Analyzing the issue...");
+    panel.show(issue, { kind: "loading" });
     try {
       const analysis = await analyzer.analyze(issue);
       cache.set(issue.id, analysis);
       if (latestId === issue.id) {
         conversation.setActive(issue, analysis);
         panel.show(issue, { kind: "analysis", analysis });
+        buddyView.issue(issue, analysis);
+        buddyView.status("Found the cause. Ask me anything about it.");
         speakIfEnabled(analysis.spoken);
       }
     } catch (err) {
