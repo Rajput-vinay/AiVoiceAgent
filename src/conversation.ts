@@ -124,7 +124,7 @@ export class Conversation {
       throw new Error('API key set nahi hai. Run: "Buddy: Set API Key".');
 
     const cfg = vscode.workspace.getConfiguration("buddy");
-    const model = cfg.get<string>("model", "gemini-2.5-flash");
+    const model = cfg.get<string>("model", "gemini-3.8-flash");
     const lang = cfg.get<"hinglish" | "english">("language", "hinglish");
 
     const state = await this.liveState();
@@ -144,7 +144,7 @@ export class Conversation {
     };
     // Voice needs low latency: skip "thinking" on Flash models (Pro models reject this).
     if (/flash/i.test(model))
-      generationConfig.thinkingConfig = { thinkingBudget: 0 };
+      generationConfig.thinkingConfig = { thinkingLevel: "low" };
 
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
