@@ -30,8 +30,7 @@ export function activate(context: vscode.ExtensionContext) {
   function speakIfEnabled(text: string) {
     if (!vscode.workspace.getConfiguration("buddy").get<boolean>("speak", true))
       return;
-    if (!voice.speak(text))
-      log.appendLine("[voice] no voice page open, skipped speaking");
+    buddyView.reply({ spoken: text });
   }
 
   async function analyzeAndShow(issue: DetectedIssue) {
@@ -45,7 +44,7 @@ export function activate(context: vscode.ExtensionContext) {
       return speakIfEnabled(cached.spoken);
     }
 
-    panel.show(issue, { kind: "loading" });
+    buddyView.issue(issue);\n    buddyView.status("🤔 Analyzing the issue...");\n    panel.show(issue, { kind: "loading" });
     try {
       const analysis = await analyzer.analyze(issue);
       cache.set(issue.id, analysis);
