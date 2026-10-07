@@ -22,10 +22,6 @@
       {
         "command": "buddy.setApiKey",
         "title": "Buddy: Set API Key"
-      },
-      {
-        "command": "buddy.openVoice",
-        "title": "Buddy: Open Voice"
       }
     ],
     "configuration": {
